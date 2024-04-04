@@ -47,6 +47,8 @@ export class CarsService {
   update(id: string, dto: UpdateCarDto) {
     const car = this.findOne(id);
 
+    if (!car) throw new NotFoundException(`Car with id ${id} not found`);
+
     Object.assign(car, dto);
 
     return car;
