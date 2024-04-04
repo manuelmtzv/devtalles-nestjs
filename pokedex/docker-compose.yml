@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  pokedex-db:
+    image: mongo:latest
+    ports:
+      - '27017:27017'
+    volumes:
+      - pokedex-db:/data/db
+    env_file:
+      - .env
+
+volumes:
+  pokedex-db:

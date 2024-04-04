@@ -1,0 +1,22 @@
+html {
+  font-size: 62.5%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-size: 1.6rem;
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 2rem;
+  background-color: gray;
+}
+
+h1 {
+  font-size: 20px;
+  color: white;
+}
