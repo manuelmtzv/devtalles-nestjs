@@ -1,9 +1,9 @@
 export abstract class HttpAdapter {
-  abstract get<T>(...args: any[]): Promise<T>;
+  abstract get(...args: any[]): Promise<unknown>;
 
-  abstract post<T>(...args: any[]): Promise<T>;
+  abstract post(...args: any[]): Promise<unknown>;
 
-  abstract put<T>(...args: any[]): Promise<T>;
+  abstract put(...args: any[]): Promise<unknown>;
 
-  abstract delete<T>(...args: any[]): Promise<T>;
+  abstract delete(...args: any[]): Promise<unknown>;
 }

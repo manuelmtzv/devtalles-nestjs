@@ -22,7 +22,7 @@ export class SeedService {
     try {
       await this.pokemonModel.deleteMany();
 
-      const data = await this.httpService.get<PokeResponse>(
+      const { data } = await this.httpService.get<PokeResponse>(
         `${this.pokeapiUrl}/pokemon?limit=650`,
       );
 
