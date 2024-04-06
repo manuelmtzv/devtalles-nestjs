@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { join } from 'path';
 import { PokemonModule } from './modules/pokemon/pokemon.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { SeedModule } from './modules/seed/seed.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
     }),
     PokemonModule,
+    SeedModule,
   ],
   controllers: [],
   providers: [],

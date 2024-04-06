@@ -16,7 +16,13 @@ npm install -g @nestjs/cli
 4. Levantar la base de datos.
 
 ```
-docker-compose up -d
+npm run db:start
+```
+
+5. Reconstruir la base de datos con la semilla
+
+```
+http://localhost:3000/api/v2/seed
 ```
 
 ## Stack utilizado
