@@ -6,9 +6,11 @@ import {
   Pokemon,
   PokemonSchema,
 } from '@modules/pokemon/entities/pokemon.entity';
+import { HttpModule } from '../http/http.module';
 
 @Module({
   imports: [
+    HttpModule,
     MongooseModule.forFeature([
       {
         name: Pokemon.name,
