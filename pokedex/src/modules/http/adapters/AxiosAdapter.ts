@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import { HttpAdapter } from '../interfaces/HttpAdapter';
+import { HttpAdapter } from '@modules/http/interfaces/HttpAdapter';
 
 export class AxiosAdapter implements HttpAdapter {
   private readonly client: AxiosInstance;
