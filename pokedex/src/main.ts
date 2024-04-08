@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,6 +17,8 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api/v2');
 
-  await app.listen(3000);
+  const configService = app.get<ConfigService>(ConfigService);
+
+  await app.listen(configService.get('PORT') || 3000);
 }
 bootstrap();

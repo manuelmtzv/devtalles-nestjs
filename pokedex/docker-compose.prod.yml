@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  pokedex-db:
+    image: mongo:latest
+    restart: always
+    ports:
+      - '27017:27017'
+    volumes:
+      - pokedex-db:/data/db
+    env_file:
+      - .env.prod
+
+  pokedex-api:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/nestjs/Dockerfile
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env.prod
+    depends_on:
+      - pokedex-db
+
+volumes:
+  pokedex-db:
