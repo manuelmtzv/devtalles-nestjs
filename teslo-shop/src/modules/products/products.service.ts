@@ -50,12 +50,9 @@ export class ProductsService {
   }
 
   async create(createProductDto: CreateProductDto) {
-    const product = this.productRepository.create({
-      ...createProductDto,
-      tags: await this.tagsService.findManyOrCreate(
-        createProductDto.tags || [],
-      ),
-    });
+    const product = this.productRepository.create(
+      await this.composeProductWithTags(createProductDto),
+    );
 
     try {
       return await this.productRepository.save(product);
@@ -65,13 +62,12 @@ export class ProductsService {
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
+    const composedProduct = await this.composeProductWithTags(updateProductDto);
+
     try {
       const product = await this.productRepository.preload({
         id,
-        ...updateProductDto,
-        tags: await this.tagsService.findManyOrCreate(
-          updateProductDto.tags || [],
-        ),
+        ...composedProduct,
       });
 
       if (!product)
@@ -88,5 +84,16 @@ export class ProductsService {
   async remove(id: string) {
     const product = await this.findOne(id);
     await this.productRepository.remove(product);
+  }
+
+  async composeProductWithTags(
+    createProductDto: CreateProductDto | UpdateProductDto,
+  ) {
+    return {
+      ...createProductDto,
+      tags: await this.tagsService.findManyOrCreate(
+        createProductDto.tags || [],
+      ),
+    };
   }
 }
