@@ -5,10 +5,12 @@ import {
   Entity,
   JoinTable,
   ManyToMany,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { composeSlug } from '@/shared/utils';
 import { Tag } from '@/modules/tags/entities/tag.entity';
+import { Image } from './image.entity';
 
 @Entity()
 export class Product {
@@ -51,6 +53,12 @@ export class Product {
   })
   @JoinTable()
   tags: Tag[];
+
+  @OneToMany(() => Image, (image) => image.product, {
+    eager: true,
+    cascade: true,
+  })
+  images?: Image[];
 
   @BeforeInsert()
   createSlug() {
