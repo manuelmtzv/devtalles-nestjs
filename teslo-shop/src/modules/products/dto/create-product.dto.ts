@@ -39,6 +39,11 @@ export class CreateProductDto {
   @IsString({ each: true })
   sizes: string[];
 
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  tags: string[];
+
   @IsString()
   @IsEnum(ProductGender)
   gender: ProductGender;

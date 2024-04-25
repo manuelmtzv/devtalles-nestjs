@@ -6,6 +6,7 @@ import { CreateProductDto, UpdateProductDto } from '@/modules/products/dto';
 import { handleDbException } from '@/shared/utils/handleDbException';
 import { PaginationDto } from '../common/dtos/pagination.dto';
 import { isUUID } from 'class-validator';
+import { TagsService } from '../tags/tags.service';
 
 @Injectable()
 export class ProductsService {
@@ -14,6 +15,7 @@ export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    private readonly tagsService: TagsService,
   ) {}
 
   async findAll(paginationDto: PaginationDto) {
@@ -48,25 +50,39 @@ export class ProductsService {
   }
 
   async create(createProductDto: CreateProductDto) {
+    const product = this.productRepository.create({
+      ...createProductDto,
+      tags: await this.tagsService.findManyOrCreate(
+        createProductDto.tags || [],
+      ),
+    });
+
     try {
-      const product = this.productRepository.create(createProductDto);
       return await this.productRepository.save(product);
-    } catch (err) {
+    } catch (err: unknown) {
       handleDbException(err, this.logger);
     }
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
-    const product = await this.findOne(id);
+    try {
+      const product = await this.productRepository.preload({
+        id,
+        ...updateProductDto,
+        tags: await this.tagsService.findManyOrCreate(
+          updateProductDto.tags || [],
+        ),
+      });
 
-    const updatedProduct = this.productRepository.create({
-      ...product,
-      ...updateProductDto,
-    });
+      if (!product)
+        throw new NotFoundException(`Product with id ${id} not found`);
 
-    await this.productRepository.update(id, updatedProduct);
+      await this.productRepository.save(product);
 
-    return updatedProduct;
+      return product;
+    } catch (err: unknown) {
+      handleDbException(err, this.logger);
+    }
   }
 
   async remove(id: string) {

@@ -3,9 +3,12 @@ import {
   BeforeUpdate,
   Column,
   Entity,
+  JoinTable,
+  ManyToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { composeSlug } from '@/shared/utils';
+import { Tag } from '@/modules/tags/entities/tag.entity';
 
 @Entity()
 export class Product {
@@ -41,6 +44,13 @@ export class Product {
     array: true,
   })
   sizes: string[];
+
+  @ManyToMany(() => Tag, (tag) => tag.products, {
+    eager: true,
+    cascade: true,
+  })
+  @JoinTable()
+  tags: Tag[];
 
   @BeforeInsert()
   createSlug() {
