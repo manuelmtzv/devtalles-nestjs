@@ -1,12 +1,12 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Product } from '@/modules/products/entities/product.entity';
 import { CreateProductDto, UpdateProductDto } from '@/modules/products/dto';
 import { handleDbException } from '@/shared/utils/handleDbException';
 import { PaginationDto } from '../common/dtos/pagination.dto';
 import { isUUID } from 'class-validator';
 import { TagsService } from '../tags/tags.service';
+import { Product, Image } from '@/modules/products/entities';
 
 @Injectable()
 export class ProductsService {
@@ -15,20 +15,23 @@ export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    @InjectRepository(Image)
+    private imageRepository: Repository<Image>,
     private readonly tagsService: TagsService,
   ) {}
 
   async findAll(paginationDto: PaginationDto) {
     const { limit, offset } = paginationDto;
 
-    return await this.productRepository.find({
-      take: limit,
-      skip: offset,
-      // todo: relations
-    });
+    return this.productRespose(
+      await this.productRepository.find({
+        take: limit,
+        skip: offset,
+      }),
+    );
   }
 
-  async findOne(term: string) {
+  async findOneRaw(term: string) {
     let product: Product;
 
     if (isUUID(term)) {
@@ -40,6 +43,7 @@ export class ProductsService {
         .where('LOWER(title) =LOWER(:term) OR LOWER(slug) =:term', {
           term,
         })
+        .leftJoinAndSelect('product.images', 'images')
         .getOne();
     }
 
@@ -49,20 +53,27 @@ export class ProductsService {
     return product;
   }
 
+  async findOne(term: string) {
+    const product = await this.findOneRaw(term);
+    return this.productRespose(product);
+  }
+
   async create(createProductDto: CreateProductDto) {
     const product = this.productRepository.create(
-      await this.composeProductWithTags(createProductDto),
+      await this.composeProduct(createProductDto),
     );
 
     try {
-      return await this.productRepository.save(product);
+      return await this.productRespose(
+        await this.productRepository.save(product),
+      );
     } catch (err: unknown) {
       handleDbException(err, this.logger);
     }
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
-    const composedProduct = await this.composeProductWithTags(updateProductDto);
+    const composedProduct = await this.composeProduct(updateProductDto);
 
     try {
       const product = await this.productRepository.preload({
@@ -75,25 +86,42 @@ export class ProductsService {
 
       await this.productRepository.save(product);
 
-      return product;
+      return this.productRespose(product);
     } catch (err: unknown) {
       handleDbException(err, this.logger);
     }
   }
 
   async remove(id: string) {
-    const product = await this.findOne(id);
+    const product = await this.findOneRaw(id);
     await this.productRepository.remove(product);
   }
 
-  async composeProductWithTags(
-    createProductDto: CreateProductDto | UpdateProductDto,
-  ) {
+  async composeProduct(createProductDto: CreateProductDto | UpdateProductDto) {
+    const { images } = createProductDto;
+
     return {
       ...createProductDto,
       tags: await this.tagsService.findManyOrCreate(
         createProductDto.tags || [],
       ),
+      images: images.map((url) => this.imageRepository.create({ url: url })),
+    };
+  }
+
+  async productRespose(data: Product | Product[]) {
+    if (Array.isArray(data)) {
+      return data.map((product) => {
+        return {
+          ...product,
+          tags: product.tags.map((tag) => tag.name),
+        };
+      });
+    }
+
+    return {
+      ...data,
+      tags: data.tags.map((tag) => tag.name),
     };
   }
 }
