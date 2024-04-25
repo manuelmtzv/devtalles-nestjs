@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { composeSlug } from '@/shared/utils';
 import { Tag } from '@/modules/tags/entities/tag.entity';
-import { Image } from './image.entity';
+import { Image } from '../../images/entities/image.entity';
 
 @Entity()
 export class Product {

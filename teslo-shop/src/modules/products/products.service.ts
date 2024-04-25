@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateProductDto, UpdateProductDto } from '@/modules/products/dto';
 import { handleDbException } from '@/shared/utils/handleDbException';
@@ -14,9 +14,10 @@ export class ProductsService {
 
   constructor(
     @InjectRepository(Product)
-    private productRepository: Repository<Product>,
+    private readonly productRepository: Repository<Product>,
     @InjectRepository(Image)
-    private imageRepository: Repository<Image>,
+    private readonly imageRepository: Repository<Image>,
+    private readonly dataSource: DataSource,
     private readonly tagsService: TagsService,
   ) {}
 
@@ -73,21 +74,39 @@ export class ProductsService {
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
-    const composedProduct = await this.composeProduct(updateProductDto);
+    const { images, ...toUpdate } = updateProductDto;
+
+    const product = await this.productRepository.preload({
+      id,
+      ...this.composeProduct(toUpdate),
+    });
+
+    if (!product)
+      throw new NotFoundException(`Product with id ${id} not found`);
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
     try {
-      const product = await this.productRepository.preload({
-        id,
-        ...composedProduct,
-      });
+      if (images) {
+        await queryRunner.manager.delete(Image, { product: product.id });
 
-      if (!product)
-        throw new NotFoundException(`Product with id ${id} not found`);
+        product.images = images.map((url) =>
+          this.imageRepository.create({ url: url }),
+        );
+      }
 
-      await this.productRepository.save(product);
+      await queryRunner.manager.save(product);
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
 
-      return this.productRespose(product);
+      const updatedProduct = await this.findOne(id);
+
+      return updatedProduct;
     } catch (err: unknown) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
       handleDbException(err, this.logger);
     }
   }
@@ -98,7 +117,7 @@ export class ProductsService {
   }
 
   async composeProduct(createProductDto: CreateProductDto | UpdateProductDto) {
-    const { images } = createProductDto;
+    const { images = [] } = createProductDto;
 
     return {
       ...createProductDto,
@@ -118,7 +137,6 @@ export class ProductsService {
         };
       });
     }
-
     return {
       ...data,
       tags: data.tags.map((tag) => tag.name),
