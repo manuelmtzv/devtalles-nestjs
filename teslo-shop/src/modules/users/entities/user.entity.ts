@@ -7,9 +7,15 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { uniq } from 'ramda';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity({ name: 'users' })
 export class User {
+  @ApiProperty({
+    example: '91d1c122-c7d5-4118-8a29-32a1b0cd0ae9',
+    description: 'The unique identifier of the user',
+    uniqueItems: true,
+  })
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
