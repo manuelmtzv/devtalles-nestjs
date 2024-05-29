@@ -1,6 +1,6 @@
 import {
   IsArray,
-  IsEnum,
+  IsIn,
   IsNumber,
   IsOptional,
   IsPositive,
@@ -8,7 +8,10 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { ProductGender } from '@/modules/products/enums';
+import {
+  ProductGenderType,
+  ProductGenderValues,
+} from '@/modules/products/enums';
 
 export class CreateProductDto {
   @IsString()
@@ -50,6 +53,6 @@ export class CreateProductDto {
   images?: string[];
 
   @IsString()
-  @IsEnum(ProductGender)
-  gender: ProductGender;
+  @IsIn(ProductGenderValues)
+  gender: ProductGenderType;
 }

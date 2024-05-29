@@ -3,6 +3,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductsModule } from './modules/products/products.module';
 import { CommonModule } from './modules/common/common.module';
+import { SeedModule } from './modules/seed/seed.module';
+import { FilesModule } from './modules/files/files.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
@@ -23,8 +29,15 @@ import { CommonModule } from './modules/common/common.module';
       }),
       imports: [ConfigModule],
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'static'),
+    }),
     ProductsModule,
     CommonModule,
+    SeedModule,
+    FilesModule,
+    UsersModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],

@@ -1,7 +1,7 @@
 import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Product } from '@/modules/products/entities/product.entity';
 
-@Entity()
+@Entity({ name: 'tags' })
 export class Tag {
   @PrimaryGeneratedColumn('uuid')
   id: string;

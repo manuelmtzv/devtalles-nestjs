@@ -142,4 +142,14 @@ export class ProductsService {
       tags: data.tags.map((tag) => tag.name),
     };
   }
+
+  async deleteAllProducts() {
+    const query = this.productRepository.createQueryBuilder('product');
+
+    try {
+      return await query.delete().where({}).execute();
+    } catch (err: unknown) {
+      handleDbException(err, this.logger);
+    }
+  }
 }

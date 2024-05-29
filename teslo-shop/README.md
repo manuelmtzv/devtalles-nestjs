@@ -7,11 +7,11 @@
 ### 2. Configurar `.env` con las variables de entorno a usar (algunas vendrán con un valor por defecto, pero se pueden modificar dependiendo de las necesidades).
 
 ```
-PORT=3000
+API_PORT=3000
+API_PREFIX=api
 
-POSTGRES_PASSWORD=postgres
-POSTGRES_USER=root
-POSTGRES_DB=teslo-shop-db
+POSTGRES_PASSWORD=
+POSTGRES_USER=
 
 ...
 ```

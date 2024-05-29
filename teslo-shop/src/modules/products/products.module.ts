@@ -10,5 +10,6 @@ import { Product, Image } from './entities';
   imports: [TypeOrmModule.forFeature([Product, Tag, Image]), TagsModule],
   controllers: [ProductsController],
   providers: [ProductsService],
+  exports: [ProductsService],
 })
 export class ProductsModule {}

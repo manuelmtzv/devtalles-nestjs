@@ -52,13 +52,15 @@ export class TagsService {
   async findManyOrCreate(tags: string[]) {
     if (!tags.length) return [];
 
+    tags = uniq(tags);
+
     const foundTags = await this.tagRepository.find({
       where: tags.map((tag) => ({ name: tag })),
     });
 
     const missingTags: string[] = [];
 
-    uniq(tags).forEach((tag) => {
+    tags.forEach((tag) => {
       if (!foundTags.find((foundTag) => foundTag.name === tag)) {
         missingTags.push(tag);
       }

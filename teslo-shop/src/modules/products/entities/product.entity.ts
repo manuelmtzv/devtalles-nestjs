@@ -10,9 +10,9 @@ import {
 } from 'typeorm';
 import { composeSlug } from '@/shared/utils';
 import { Tag } from '@/modules/tags/entities/tag.entity';
-import { Image } from '../../images/entities/image.entity';
+import { Image } from '@/modules/images/entities/image.entity';
 
-@Entity()
+@Entity({ name: 'products' })
 export class Product {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -51,7 +51,7 @@ export class Product {
     eager: true,
     cascade: true,
   })
-  @JoinTable()
+  @JoinTable({ name: 'products_tags' })
   tags: Tag[];
 
   @OneToMany(() => Image, (image) => image.product, {
