@@ -1,13 +1,10 @@
 import { User } from '@/modules/users/entities/user.entity';
+import { RequestWithUser } from '@/shared/interfaces/request-with-user.interface';
 import {
   createParamDecorator,
   ExecutionContext,
   InternalServerErrorException,
 } from '@nestjs/common';
-
-interface RequestWithUser extends Request {
-  user: User;
-}
 
 type UserProperty = keyof InstanceType<typeof User>;
 

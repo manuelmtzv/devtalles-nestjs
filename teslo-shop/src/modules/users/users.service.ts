@@ -6,6 +6,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { handleDbException } from '@/shared/utils';
 import * as argon from 'argon2';
 import { isUUID } from 'class-validator';
+import { deleteAllRows } from '@/shared/utils/deleteAllRows';
 
 @Injectable()
 export class UsersService {
@@ -40,5 +41,9 @@ export class UsersService {
     } catch (err) {
       return handleDbException(err, this.logger);
     }
+  }
+
+  async deleteAllUsers() {
+    return deleteAllRows(this.userRepository);
   }
 }

@@ -6,6 +6,7 @@ import { isUUID } from 'class-validator';
 import { CreateTagDto } from './dtos/create-tag.dto';
 import { handleDbException } from '@/shared/utils';
 import { uniq } from 'ramda';
+import { deleteAllRows } from '@/shared/utils/deleteAllRows';
 
 @Injectable()
 export class TagsService {
@@ -86,5 +87,9 @@ export class TagsService {
 
   delete(id: string) {
     return `This action removes a ${id} tag`;
+  }
+
+  async deleteAllTags() {
+    return deleteAllRows(this.tagRepository);
   }
 }

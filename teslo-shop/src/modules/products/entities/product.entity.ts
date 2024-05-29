@@ -5,12 +5,14 @@ import {
   Entity,
   JoinTable,
   ManyToMany,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { composeSlug } from '@/shared/utils';
 import { Tag } from '@/modules/tags/entities/tag.entity';
 import { Image } from '@/modules/images/entities/image.entity';
+import { User } from '@/modules/users/entities/user.entity';
 
 @Entity({ name: 'products' })
 export class Product {
@@ -34,6 +36,7 @@ export class Product {
 
   @Column('text', {
     unique: true,
+    nullable: true,
   })
   slug: string;
 
@@ -46,6 +49,9 @@ export class Product {
     array: true,
   })
   sizes: string[];
+
+  @ManyToOne(() => User, (user) => user.products)
+  user: User;
 
   @ManyToMany(() => Tag, (tag) => tag.products, {
     eager: true,

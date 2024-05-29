@@ -7,6 +7,8 @@ import { PaginationDto } from '../common/dtos/pagination.dto';
 import { isUUID } from 'class-validator';
 import { TagsService } from '../tags/tags.service';
 import { Product, Image } from '@/modules/products/entities';
+import { User } from '../users/entities/user.entity';
+import { deleteAllRows } from '@/shared/utils/deleteAllRows';
 
 @Injectable()
 export class ProductsService {
@@ -33,20 +35,14 @@ export class ProductsService {
   }
 
   async findOneRaw(term: string) {
-    let product: Product;
+    const whereClause = isUUID(term)
+      ? { id: term }
+      : [{ title: term }, { slug: term }];
 
-    if (isUUID(term)) {
-      product = await this.productRepository.findOne({ where: { id: term } });
-    } else {
-      const query = this.productRepository.createQueryBuilder('product');
-
-      product = await query
-        .where('LOWER(title) =LOWER(:term) OR LOWER(slug) =:term', {
-          term,
-        })
-        .leftJoinAndSelect('product.images', 'images')
-        .getOne();
-    }
+    const product = await this.productRepository.findOne({
+      where: whereClause,
+      relations: ['tags', 'images', 'user'],
+    });
 
     if (!product)
       throw new NotFoundException(`Product with id ${term} not found`);
@@ -59,15 +55,16 @@ export class ProductsService {
     return this.productRespose(product);
   }
 
-  async create(createProductDto: CreateProductDto) {
-    const product = this.productRepository.create(
-      await this.composeProduct(createProductDto),
-    );
+  async create(user: User, createProductDto: CreateProductDto) {
+    const composedProduct = await this.composeProduct(createProductDto);
+
+    const product = this.productRepository.create({
+      ...composedProduct,
+      user,
+    });
 
     try {
-      return await this.productRespose(
-        await this.productRepository.save(product),
-      );
+      return this.productRespose(await this.productRepository.save(product));
     } catch (err: unknown) {
       handleDbException(err, this.logger);
     }
@@ -128,7 +125,7 @@ export class ProductsService {
     };
   }
 
-  async productRespose(data: Product | Product[]) {
+  productRespose(data: Product | Product[]) {
     if (Array.isArray(data)) {
       return data.map((product) => {
         return {
@@ -139,17 +136,11 @@ export class ProductsService {
     }
     return {
       ...data,
-      tags: data.tags.map((tag) => tag.name),
+      tags: data.tags?.map((tag) => tag.name),
     };
   }
 
   async deleteAllProducts() {
-    const query = this.productRepository.createQueryBuilder('product');
-
-    try {
-      return await query.delete().where({}).execute();
-    } catch (err: unknown) {
-      handleDbException(err, this.logger);
-    }
+    return deleteAllRows(this.productRepository);
   }
 }

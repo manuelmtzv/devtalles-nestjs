@@ -6,10 +6,14 @@ import * as argon from 'argon2';
 import { JwtPayload } from './interfaces/JwtPayload';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../users/entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
   constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
   ) {}
@@ -26,7 +30,10 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
 
-    const user = await this.usersService.findOne(email);
+    const user = await this.userRepository.findOne({
+      where: { email },
+      select: ['id', 'email', 'hashedPassword', 'fullName', 'roles'],
+    });
 
     if (!(await argon.verify(user.hashedPassword, password))) {
       throw new UnauthorizedException(
