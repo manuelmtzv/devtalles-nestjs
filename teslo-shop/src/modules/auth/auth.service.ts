@@ -35,6 +35,10 @@ export class AuthService {
       select: ['id', 'email', 'hashedPassword', 'fullName', 'roles'],
     });
 
+    if (!user) {
+      throw new UnauthorizedException('This user does not exist.');
+    }
+
     if (!(await argon.verify(user.hashedPassword, password))) {
       throw new UnauthorizedException(
         'The provided user credentials are not valid.',
