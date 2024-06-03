@@ -1,16 +1,27 @@
 import { Manager, Socket } from 'socket.io-client'
 
-export const connectToServer = () => {
-  const manager = new Manager("http://localhost:3000/socket.io/socket.io.js")
+let socket: Socket;
 
-  const socket = manager.socket("/messages")
+export function connectToServer(token: string) {
+  const manager = new Manager("http://localhost:3000/socket.io/socket.io.js", {
+    extraHeaders: {
+      authentication: `${token}`
+    }
+  })
 
-  addListeners(socket)
+  socket?.removeAllListeners();
+  socket = manager.socket("/messages")
+
+  addListeners()
 }
 
-const addListeners = (socket: Socket) => {
-  const serverStatusLabel = document.querySelector<HTMLSpanElement>('#server-status')
-  const clientsList = document.querySelector<HTMLUListElement>('#clients')
+function addListeners() {
+  const serverStatusLabel = document.querySelector<HTMLSpanElement>('#server-status')!
+  const clientsList = document.querySelector<HTMLUListElement>('#clients')!
+
+  const messageForm = document.querySelector<HTMLFormElement>('#message-form')!
+  const messageInput = document.querySelector<HTMLInputElement>('#message-input')!
+  const messagesList = document.querySelector<HTMLUListElement>('#messages-list')!
 
   socket.on('connect', () => {
     serverStatusLabel!.textContent = 'Online'
@@ -22,5 +33,18 @@ const addListeners = (socket: Socket) => {
 
   socket.on('clients-updated', (clients: string[]) => {
     clientsList!.innerHTML = clients.map(client => `<li>${client}</li>`).join('')
+  })  
+
+  messageForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    if (messageInput.value.trim()) {
+      socket.emit('message', { id: 'Yo', message: messageInput.value}, )
+      messageInput.value = ''
+    }
+  })
+
+  socket.on('message-from-server', (payload: { fullName: string, message: string }) => {
+    messagesList!.innerHTML += `<li>${payload.fullName}: ${payload.message}</li>`
   })
 }
